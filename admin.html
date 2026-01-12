@@ -1,106 +1,50 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة تحكم المدير | FF Store</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
+    <title>لوحة القائد - FF STORE ADMIN</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        body { font-family: 'Cairo', sans-serif; background: #0f172a; color: white; padding: 20px; }
-        .admin-card { background: #1e293b; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #334155; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; border: 1px solid #334155; text-align: center; }
-        th { background: #ef4444; }
-        .btn-done { background: #10b981; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
-        .btn-copy { background: #3b82f6; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-right: 5px; }
-        input { padding: 8px; border-radius: 5px; border: none; width: 200px; }
+        body { background: #05080a; color: white; font-family: 'Cairo'; text-align: center; }
+        .admin-box { max-width: 800px; margin: 20px auto; background: #12181f; padding: 20px; border-radius: 10px; border-top: 5px solid #ff4b2b; }
+        input { padding: 10px; margin: 5px; background: #0b0e14; border: 1px solid #ff4b2b; color: white; }
+        button { padding: 10px 20px; background: #ff4b2b; border: none; color: white; cursor: pointer; font-weight: bold; }
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+        th { background: #ff4b2b; padding: 10px; }
+        td { padding: 10px; border-bottom: 1px solid #1e2530; }
     </style>
 </head>
 <body>
-
-    <h2>👨‍💻 لوحة إدارة المتجر</h2>
-
-    <div class="admin-card">
-        <h3>💰 إضافة رصيد للمحفظة</h3>
-        <input type="text" id="targetUID" placeholder="أدخل UID الزبون">
-        <input type="number" id="amount" placeholder="المبلغ (ج.س)">
-        <button class="btn-done" onclick="addBalance()">إضافة رصيد الآن</button>
+    <div class="admin-box">
+        <h1>التحكم في المحافظ 💳</h1>
+        <input type="text" id="target-uid" placeholder="UID اللاعب">
+        <input type="number" id="charge-amount" placeholder="المبلغ ج.س">
+        <button onclick="chargeWallet()">شحن المحفظة</button>
     </div>
 
-    <div class="admin-card">
-        <h3>📥 طلبات الشحن الجديدة</h3>
+    <div class="admin-box">
+        <h2>طلبات الجواهر والحسابات 📥</h2>
         <table>
-            <thead>
-                <tr>
-                    <th>الزبون</th>
-                    <th>الباقة</th>
-                    <th>ID اللاعب</th>
-                    <th>الحالة</th>
-                    <th>إجراء</th>
-                </tr>
-            </thead>
-            <tbody id="ordersTable">
-                </tbody>
+            <thead><tr><th>المستخدم</th><th>الطلب</th><th>الـ UID</th><th>الإجراء</th></tr></thead>
+            <tbody id="admin-orders"></tbody>
         </table>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, set, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+<script>
+    // استخدم نفس إعدادات firebaseConfig هنا
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCwb4HhEtQyzdlya4L85WkiA3vA_fW85Wk",
-            authDomain: "ffstore-a008a.firebaseapp.com",
-            databaseURL: "https://ffstore-a008a-default-rtdb.firebaseio.com/",
-            projectId: "ffstore-a008a",
-            storageBucket: "ffstore-a008a.firebasestorage.app",
-            messagingSenderId: "993784923560",
-            appId: "1:993784923560:web:b3933cef1bf4661188099d"
-        };
+    async function chargeWallet() {
+        const uid = document.getElementById('target-uid').value;
+        const amt = parseInt(document.getElementById('charge-amount').value);
+        const snap = await db.ref('wallets/' + uid).once('value');
+        await db.ref('wallets/' + uid).set((snap.val() || 0) + amt);
+        alert("تم شحن الرصيد بنجاح!");
+    }
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        // وظيفة إضافة الرصيد
-        window.addBalance = () => {
-            const uid = document.getElementById('targetUID').value;
-            const cash = parseInt(document.getElementById('amount').value);
-            if(!uid || !cash) return alert("أدخل البيانات كاملة");
-
-            const userRef = ref(db, 'users/' + uid);
-            onValue(userRef, (s) => {
-                const current = s.val() ? s.val().balance : 0;
-                update(userRef, { balance: current + cash });
-                alert("تمت إضافة الرصيد بنجاح!");
-            }, { onlyOnce: true });
-        };
-
-        // عرض الطلبات وتحديثها
-        onValue(ref(db, 'orders/'), (snapshot) => {
-            const table = document.getElementById('ordersTable');
-            table.innerHTML = "";
-            snapshot.forEach((child) => {
-                const order = child.val();
-                const row = `<tr>
-                    <td>${order.customerName}</td>
-                    <td>${order.packageName}</td>
-                    <td>
-                        <b>${order.playerID}</b>
-                        <button class="btn-copy" onclick="navigator.clipboard.writeText('${order.playerID}'); alert('تم النسخ')">نسخ</button>
-                    </td>
-                    <td>${order.status}</td>
-                    <td>
-                        <button class="btn-done" onclick="completeOrder('${child.key}')">تم الشحن ✅</button>
-                    </td>
-                </tr>`;
-                table.innerHTML += row;
-            });
-        });
-
-        window.completeOrder = (orderKey) => {
-            update(ref(db, 'orders/' + orderKey), { status: "تم الشحن بنجاح ✅" });
-            // اختياري: يمكنك حذف الطلب بعد الشحن لتبقى القائمة نظيفة
-            // remove(ref(db, 'orders/' + orderKey)); 
-        };
-    </script>
+    // كود جلب الطلبات وعرضها...
+</script>
 </body>
 </html>

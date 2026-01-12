@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر FF السوداني | شحن جواهر</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #ef4444; --bg: #0f172a; --card: #1e293b; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: white; margin: 0; text-align: center; }
+        
+        /* شاشة الدخول */
+        #authSection { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #1e293b, #0f172a); }
+        .btn-google { background: white; color: #334155; border: none; padding: 12px 25px; border-radius: 50px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+
+        /* المتجر */
+        #storeSection { display: none; padding: 15px; }
+        .header { background: linear-gradient(135deg, var(--primary), #b91c1c); padding: 20px; border-radius: 0 0 25px 25px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid #334155; transition: 0.3s; }
+        .card:active { transform: scale(0.95); }
+        .price { color: #fbbf24; font-size: 1.1rem; display: block; margin: 8px 0; }
+        .buy-btn { background: var(--primary); color: white; border: none; width: 100%; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        /* قسم الـ ID المخفي */
+        #orderArea { display: none; margin-top: 25px; background: #064e3b; padding: 20px; border-radius: 15px; border: 2px solid #10b981; animation: slideIn 0.5s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        input { width: 90%; padding: 12px; border-radius: 8px; border: none; margin: 10px 0; text-align: center; font-size: 1rem; }
+
+        /* زر واتساب */
+        .whatsapp-btn { position: fixed; bottom: 20px; left: 20px; background: #25d366; width: 60px; height: 60px; border-radius: 50%; display: none; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 1000; }
+    </style>
+</head>
+<body>
+
+    <div id="authSection">
+        <h1 style="font-size: 2.5rem; margin-bottom: 5px;">💎 FF STORE</h1>
+        <p style="color: #94a3b8; margin-bottom: 30px;">سجل دخولك لبدء الشحن</p>
+        <button class="btn-google" id="googleBtn">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
+            الدخول باستخدام جوجل
+        </button>
+    </div>
+
+    <div id="storeSection">
+        <div class="header">
+            <h2 id="userName">مرحباً بك</h2>
+            <p>رصيد محفظتك: <span id="userBalance" style="font-size: 1.5rem;">0</span> ج.س</p>
+            <small>كود حسابك: <span id="userUID">...</span></small>
+        </div>
+
+        <h3>باقات الجواهر المتاحة 💎</h3>
+        <div class="grid">
+            <div class="card">
+                <h4>100 جوهرة</h4>
+                <span class="price">3,800 ج.س</span>
+                <button class="buy-btn" onclick="buy(3800, '100 جوهرة')">شراء</button>
+            </div>
+            <div class="card">
+                <h4>210 جوهرة</h4>
+                <span class="price">7,500 ج.س</span>
+                <button class="buy-btn" onclick="buy(7500, '210 جوهرة')">شراء</button>
+            </div>
+            <div class="card">
+                <h4>530 جوهرة</h4>
+                <span class="price">18,500 ج.س</span>
+                <button class="buy-btn" onclick="buy(18500, '530 جوهرة')">شراء</button>
+            </div>
+            <div class="card" style="border-color: #fbbf24;">
+                <h4>1080 جوهرة</h4>
+                <span class="price">35,000 ج.س</span>
+                <button class="buy-btn" onclick="buy(35000, '1080 جوهرة')">شراء</button>
+            </div>
+        </div>
+
+        <div id="orderArea">
+            <h3 style="margin:0;">✅ تم خصم المبلغ</h3>
+            <p>أدخل الآن ID اللاعب لشحن الجواهر:</p>
+            <input type="number" id="playerID" placeholder="أدخل ID اللاعب هنا">
+            <button class="buy-btn" style="background:#10b981; font-size:1.1rem;" onclick="sendOrder()">تأكيد الشحن فوراً</button>
+        </div>
+    </div>
+
+    <a href="#" id="waLink" class="whatsapp-btn" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="35">
+    </a>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, onValue, set, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwb4HhEtQyzdlya4L85WkiA3vA_fW85Wk",
+            authDomain: "ffstore-a008a.firebaseapp.com",
+            databaseURL: "https://ffstore-a008a-default-rtdb.firebaseio.com/",
+            projectId: "ffstore-a008a",
+            storageBucket: "ffstore-a008a.firebasestorage.app",
+            messagingSenderId: "993784923560",
+            appId: "1:993784923560:web:b3933cef1bf4661188099d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const provider = new GoogleAuthProvider();
+
+        document.getElementById('googleBtn').onclick = () => {
+            signInWithPopup(auth, provider).catch(e => alert("فشل الدخول"));
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('authSection').style.display = 'none';
+                document.getElementById('storeSection').style.display = 'block';
+                document.getElementById('waLink').style.display = 'flex';
+
+                document.getElementById('userName').innerText = "مرحباً " + user.displayName.split(' ')[0];
+                document.getElementById('userUID').innerText = user.uid;
+
+                // تم وضع رقمك هنا
+                const myNum = "249118801850"; 
+                const msg = `مرحباً، أريد شحن رصيد في محفظتي. كود حسابي هو: ${user.uid}`;
+                document.getElementById('waLink').href = `https://wa.me/${myNum}?text=${encodeURIComponent(msg)}`;
+
+                onValue(ref(db, 'users/' + user.uid), (s) => {
+                    const data = s.val();
+                    document.getElementById('userBalance').innerText = data ? data.balance.toLocaleString() : 0;
+                    if(!data) set(ref(db, 'users/' + user.uid), { balance: 0, name: user.displayName });
+                });
+            } else {
+                document.getElementById('waLink').style.display = 'none';
+            }
+        });
+
+        let currentPackageName = "";
+        window.buy = (cost, pack) => {
+            const uid = auth.currentUser.uid;
+            onValue(ref(db, 'users/' + uid), (snapshot) => {
+                const userBalance = snapshot.val().balance;
+                if(userBalance >= cost) {
+                    set(ref(db, 'users/' + uid + '/balance'), userBalance - cost);
+                    currentPackageName = pack;
+                    document.getElementById('orderArea').style.display = 'block';
+                    document.getElementById('orderArea').scrollIntoView({behavior: 'smooth'});
+                } else {
+                    alert("رصيد محفظتك غير كافٍ. اضغط على زر الواتساب لمراسلة المدير وشحن رصيدك.");
+                }
+            }, {onlyOnce: true});
+        };
+
+        window.sendOrder = () => {
+            const playerID = document.getElementById('playerID').value;
+            if(playerID.length < 5) return alert("ID اللاعب غير صحيح");
+
+            push(ref(db, 'orders/'), {
+                uid: auth.currentUser.uid,
+                customerName: auth.currentUser.displayName,
+                playerID: playerID,
+                packageName: currentPackageName,
+                status: "قيد المراجعة ⏳",
+                timestamp: new Date().toLocaleString('ar-EG')
+            }).then(() => {
+                if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3').play();
+                alert("✅ تم إرسال طلبك! سيقوم المدير بالشحن فوراً.");
+                document.getElementById('orderArea').style.display = 'none';
+                document.getElementById('playerID').value = "";
+            });
+        };
+    </script>
+</body>
+</html>

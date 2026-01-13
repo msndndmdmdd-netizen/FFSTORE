@@ -157,10 +157,7 @@ function askAccount(level) {
     
     // فتح الواتساب في نافذة جديدة
     window.open(whatsappUrl, '_blank');
-}
->
-</body>
-</html>
+// هذا هو المحرك الذي يشغل زر الاستفسار ويربطه بالواتساب
 function askAccount(level) {
     const user = firebase.auth().currentUser;
     const userUID = user ? user.uid : "غير مسجل";
@@ -174,3 +171,8 @@ function askAccount(level) {
     // أمر فتح الواتساب
     window.open(whatsappUrl, '_blank');
 }
+}
+>
+</body>
+</html>
+

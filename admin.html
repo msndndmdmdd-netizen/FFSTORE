@@ -139,11 +139,22 @@
         alert("تم نسخ الـ UID! اذهب الآن لبرنامج الشحن والصقه.");
     }
 
-    function deleteOrder(key) {
-        if(confirm("هل متأكد من حذف الطلب؟ (قم بالحذف فقط بعد الشحن للاعب)")) {
+    function deleteOrder(key) // هذه هي الوظيفة المحدثة التي ترسل الإشعار
+function deleteOrder(key, userUID) {
+    if(confirm("هل متأكد من إتمام الشحن؟ سيصل إشعار فوري للعميل.")) {
+        
+        // أولاً: إرسال إشارة "نجاح" لقاعدة البيانات تحت UID العميل
+        db.ref('notifications/' + userUID).set({
+            status: "completed",
+            timestamp: Date.now()
+        }).then(() => {
+            // ثانياً: حذف الطلب الأصلي من القائمة بعد إرسال الإشعار
             db.ref('orders/' + key).remove();
-        }
+            alert("تم تنفيذ الطلب وإخطار العميل بنجاح! ✅");
+        });
     }
+}
+
 </script>
 </body>
 </html>

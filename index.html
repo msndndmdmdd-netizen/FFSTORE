@@ -3,126 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FF STORE | دخول المحاربين</title>
+    <title>FF STORE | متجر المحاربين</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        :root { --fire: #ff4b2b; --gold: #ffcc00; --bg: #0b0e14; }
+        :root { --fire: #ff4b2b; --gold: #ffcc00; --bg: #0b0e14; --card: #161b22; }
         body {
             margin: 0; background-color: var(--bg); color: white; font-family: 'Cairo', sans-serif;
             background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://wallpaperaccess.com/full/1192102.jpg');
             background-size: cover; background-attachment: fixed; display: flex; justify-content: center; align-items: center; min-height: 100vh;
         }
-        .main-card { width: 100%; max-width: 400px; background: rgba(20, 25, 35, 0.95); padding: 30px; border-radius: 20px; border-top: 5px solid var(--fire); box-shadow: 0 10px 30px rgba(0,0,0,0.7); text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #334155; background: #070a0f; color: white; box-sizing: border-box; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; }
-        .btn-fire { background: linear-gradient(45deg, #ff4b2b, #ff416c); color: white; box-shadow: 0 4px 15px rgba(255, 75, 43, 0.4); }
+        .main-container { width: 95%; max-width: 420px; background: rgba(22, 27, 34, 0.98); padding: 25px; border-radius: 20px; border-top: 4px solid var(--fire); box-shadow: 0 15px 35px rgba(0,0,0,0.8); text-align: center; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #30363d; background: #0d1117; color: white; box-sizing: border-box; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; font-size: 16px; }
+        .btn-fire { background: linear-gradient(45deg, #ff4b2b, #ff416c); color: white; box-shadow: 0 4px 15px rgba(255, 75, 43, 0.3); }
         .btn-outline { background: transparent; border: 1px solid var(--fire); color: var(--fire); }
-        .wallet-display { background: #1a202c; padding: 15px; border-radius: 12px; margin: 20px 0; border: 1px dashed var(--gold); }
+        .wallet-card { background: #0d1117; padding: 15px; border-radius: 12px; margin: 15px 0; border: 1px dashed var(--gold); }
         .hidden { display: none; }
-        .offer-item { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 10px; margin: 8px 0; border-radius: 5px; border-right: 3px solid var(--gold); }
+        .item-row { display: flex; justify-content: space-between; align-items: center; background: #1c2128; padding: 12px; margin: 8px 0; border-radius: 8px; border-right: 4px solid var(--gold); }
+        .buy-btn { background: var(--fire); color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="main-card">
-    <h1 style="color: var(--fire); margin-bottom: 5px;">FF STORE</h1>
-    <p style="font-size: 13px; color: #888; margin-bottom: 25px;">متجر الشحن الرسمي للسودان</p>
+<div class="main-container">
+    <h1 style="color: var(--fire); margin-bottom: 5px; letter-spacing: 2px;">FF STORE</h1>
+    <p style="color: #8b949e; font-size: 13px; margin-bottom: 25px;">الشحن الرسمي والآمن في السودان 🇸🇩</p>
 
     <div id="auth-screen">
         <input type="email" id="email" placeholder="البريد الإلكتروني">
-        <input type="password" id="password" placeholder="كلمة المرور">
+        <input type="password" id="password" placeholder="كلمة المرور (6 أحرف فأكثر)">
         <button class="btn btn-fire" onclick="handleAuth('login')">تسجيل الدخول</button>
         <button class="btn btn-outline" onclick="handleAuth('register')">إنشاء حساب جديد</button>
+        <p style="font-size: 11px; color: #555; margin-top: 15px;">بإنشائك حساب فإنك توافق على شروط المتجر</p>
     </div>
 
     <div id="shop-screen" class="hidden">
-        <div class="wallet-display">
-            <span style="display:block; font-size: 14px; color: #aaa;">رصيد محفظتك</span>
-            <span id="balance" style="font-size: 28px; color: var(--gold); font-weight: bold;">0</span> <small>ج.س</small>
+        <div class="wallet-card">
+            <small style="color: #8b949e;">كود الشحن الخاص بك (UID):</small>
+            <div id="user-uid" style="color: var(--gold); font-family: monospace; font-size: 15px; margin: 5px 0; font-weight: bold;">جاري التحميل...</div>
+            <hr style="border: 0.1px solid #30363d;">
+            <small style="color: #8b949e;">رصيد محفظتك:</small>
+            <div style="font-size: 30px; color: white; font-weight: bold;"><span id="balance">0</span> <small style="font-size: 14px;">ج.س</small></div>
         </div>
 
         <div style="text-align: right;">
-            <h3 style="color: var(--fire);">عروض الجواهر 🔥</h3>
-            <div class="offer-item"><span>110 جوهرة</span> <b>3800 ج.س</b> <button onclick="buy(110, 3800)">شراء</button></div>
-            <div class="offer-item"><span>231 جوهرة</span> <b>7600 ج.س</b> <button onclick="buy(231, 7600)">شراء</button></div>
-            
-            <h3 style="color: var(--fire); margin-top: 20px;">بيع حسابات 🎮</h3>
-            <select id="acc-lvl" style="width:100%; padding:10px; background:#0f172a; color:white; border:1px solid #334155;">
-                <option value="40-50">حساب مستوى 40 - 50</option>
-                <option value="50-60">حساب مستوى 50 - 60</option>
-            </select>
-            <button class="btn btn-fire" onclick="buyAcc()">طلب الحساب</button>
+            <h3 style="color: var(--fire); font-size: 16px;">💎 عروض جواهر فري فاير</h3>
+            <div class="item-row"><span>110 جوهرة</span> <b>3,800 ج.س</b> <button class="buy-btn" onclick="order('جواهر', 110, 3800)">شراء</button></div>
+            <div class="item-row"><span>231 جوهرة</span> <b>7,600 ج.س</b> <button class="buy-btn" onclick="order('جواهر', 231, 7600)">شراء</button></div>
+            <div class="item-row"><span>572 جوهرة</span> <b>18,500 ج.س</b> <button class="buy-btn" onclick="order('جواهر', 572, 18500)">شراء</button></div>
+
+            <h3 style="color: var(--fire); font-size: 16px; margin-top: 20px;">🎮 شراء حسابات جاهزة</h3>
+            <div class="item-row"><span>حساب مستوى 40-50</span> <b>12,000 ج.س</b> <button class="buy-btn" onclick="order('حساب', '40-50', 12000)">طلب</button></div>
+            <div class="item-row"><span>حساب مستوى 50-60</span> <b>25,000 ج.س</b> <button class="buy-btn" onclick="order('حساب', '50-60', 25000)">طلب</button></div>
         </div>
 
-        <a href="https://wa.me/249118801850" class="btn btn-outline" style="text-decoration:none; display:block; margin-top:20px; background:#25d366; border:none; color:white;">تواصل مع القائد (لشحن المحفظة)</a>
-        <button onclick="firebase.auth().signOut()" style="background:none; border:none; color:#555; cursor:pointer; margin-top:15px;">تسجيل الخروج</button>
+        <a href="https://wa.me/249118801850" class="btn" style="background: #23d366; color: white; text-decoration: none; display: block;">تواصل مع المدير لشحن محفظتك</a>
+        <button onclick="firebase.auth().signOut()" style="background:none; border:none; color:#555; cursor:pointer; margin-top:20px; font-size: 12px;">تسجيل الخروج</button>
     </div>
 </div>
 
 <script>
-    // ضع بياناتك هنا
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCwb4HhEtQyzdlya4L85Wk1pgLlj8_n_jc",
-  authDomain: "ffstore-a008a.firebaseapp.com",
-  databaseURL: "https://ffstore-a008a-default-rtdb.firebaseio.com",
-  projectId: "ffstore-a008a",
-  storageBucket: "ffstore-a008a.firebasestorage.app",
-  messagingSenderId: "993784923560",
-  appId: "1:993784923560:web:b3933cef1bf4661188099d",
-  measurementId: "G-CKBD0FKFJB"
-};
+    // ضع بيانات Config الخاصة بك هنا بدقة
+    const firebaseConfig = {
+        apiKey: "AIzaSy...", 
+        authDomain: "ffstore-a008a.firebaseapp.com",
+        databaseURL: "https://ffstore-a008a-default-rtdb.firebaseio.com",
+        projectId: "ffstore-a008a",
+        storageBucket: "ffstore-a008a.appspot.com",
+        messagingSenderId: "993784923560",
+        appId: "1:993784923560:web:8a57e3f608101a93325608"
+    };
+
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
 
-    // التبديل بين الشاشات تلقائياً
+    // مراقبة الدخول والخروج
     auth.onAuthStateChanged(user => {
         if (user) {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('shop-screen').classList.remove('hidden');
-            db.ref('wallets/' + user.uid).on('value', s => { document.getElementById('balance').innerText = s.val() || 0; });
+            document.getElementById('user-uid').innerText = user.uid; // إظهار الكود للمستخدم
+            db.ref('wallets/' + user.uid).on('value', s => { 
+                document.getElementById('balance').innerText = (s.val() || 0).toLocaleString(); 
+            });
         } else {
             document.getElementById('auth-screen').classList.remove('hidden');
             document.getElementById('shop-screen').classList.add('hidden');
         }
     });
 
+    // التعامل مع التسجيل والدخول
     async function handleAuth(type) {
-        const e = document.getElementById('email').value;
-        const p = document.getElementById('password').value;
+        const email = document.getElementById('email').value.trim();
+        const pass = document.getElementById('password').value;
+        if(!email || !pass) return alert("الرجاء ملء البيانات");
         try {
-            if(type === 'login') await auth.signInWithEmailAndPassword(e, p);
-            else await auth.createUserWithEmailAndPassword(e, p);
-        } catch (err) { alert("خطأ: " + err.message); }
+            if(type === 'login') await auth.signInWithEmailAndPassword(email, pass);
+            else await auth.createUserWithEmailAndPassword(email, pass);
+        } catch (e) { alert("خطأ: " + e.message); }
     }
 
-    async function buy(amt, prc) {
-        const u = auth.currentUser;
-        const snap = await db.ref('wallets/' + u.uid).once('value');
+    // إرسال الطلبات للمدير
+    async function order(type, detail, price) {
+        const user = auth.currentUser;
+        const snap = await db.ref('wallets/' + user.uid).once('value');
         const bal = snap.val() || 0;
-        if(bal >= prc) {
-            await db.ref('wallets/' + u.uid).set(bal - prc);
-            await db.ref('orders').push({ email: u.email, uid: u.uid, type: "جواهر", amount: amt });
-            alert("تم الشراء بنجاح! انتظر شحن الجواهر في حسابك.");
-        } else { alert("رصيدك غير كافٍ! اشحن محفظتك من المدير."); }
-    }
-
-    function buyAcc() {
-        const lvl = document.getElementById('acc-lvl').value;
-        alert("تم إرسال طلبك لشراء حساب مستوى " + lvl);
+        
+        if(bal >= price) {
+            if(confirm(`هل تريد تأكيد طلب ${detail} بمبلغ ${price} ج.س؟`)) {
+                await db.ref('wallets/' + user.uid).set(bal - price);
+                await db.ref('orders').push({
+                    email: user.email,
+                    uid: user.uid,
+                    type: type,
+                    amount: type === 'جواهر' ? detail : null,
+                    level: type === 'حساب' ? detail : null,
+                    date: new Date().toLocaleString()
+                });
+                alert("تم إرسال طلبك بنجاح! سيتم التنفيذ خلال دقائق.");
+            }
+        } else {
+            alert("رصيد محفظتك لا يكفي! الرجاء شحن المحفظة أولاً.");
+        }
     }
 </script>
-</body><div id="shop-screen" class="hidden">
-    <div class="wallet-display">
-        <span style="display:block; font-size: 14px; color: #aaa;">كود المستخدم (UID) الخاص بك</span>
-        <span id="user-uid-display" style="color: var(--gold); font-family: monospace; font-size: 18px; border: 1px solid #333; padding: 5px; display: block; margin-bottom: 10px;">تحميل...</span>
-        
-        <span style="display:block; font-size: 14px; color: #aaa;">رصيد محفظتك</span>
-        <span id="balance" style="font-size: 28px; color: var(--gold); font-weight: bold;">0</span> <small>ج.س</small>
-    </div>
-    </div>
-
+</body>
 </html>

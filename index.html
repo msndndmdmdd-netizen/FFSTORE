@@ -13,7 +13,10 @@
             margin: 0; background-color: var(--bg); color: white; font-family: 'Cairo', sans-serif;
             background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://wallpaperaccess.com/full/1192102.jpg');
             background-size: cover; background-attachment: fixed; display: flex; justify-content: center; align-items: center; min-height: 100vh;
-        }
+        }<div id="notif-box" style="display:none; background: #23d366; color: white; padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; font-weight: bold; animation: pulse 2s infinite;">
+    ✅ مبروك! تم تنفيذ طلب الشحن الخاص بك بنجاح.
+</div>
+
         .main-container { width: 95%; max-width: 420px; background: rgba(22, 27, 34, 0.98); padding: 25px; border-radius: 20px; border-top: 4px solid var(--fire); box-shadow: 0 15px 35px rgba(0,0,0,0.8); text-align: center; }
         input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #30363d; background: #0d1117; color: white; box-sizing: border-box; }
         .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; font-size: 16px; }
@@ -72,7 +75,25 @@
     </div>
 </div>
 
-<script>
+<script// مراقبة إذا كان هناك طلب تم تنفيذه لهذا المستخدم
+function watchOrders() {
+    const user = firebase.auth().currentUser;
+    if (user) {
+        db.ref('notifications/' + user.uid).on('value', (snapshot) => {
+            if (snapshot.val() && snapshot.val().status === "completed") {
+                document.getElementById('notif-box').style.display = 'block';
+                // إخفاء الرسالة بعد 10 ثواني
+                setTimeout(() => {
+                    db.ref('notifications/' + user.uid).remove();
+                    document.getElementById('notif-box').style.display = 'none';
+                }, 10000);
+            }
+        });
+    }
+}
+// تشغيل المراقبة بعد تسجيل الدخول
+firebase.auth().onAuthStateChanged((user) => { if(user) watchOrders(); });
+>
     // ضع بيانات Config الخاصة بك هنا بدقة
     // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional

@@ -139,7 +139,7 @@ const firebaseConfig = {
             alert("رصيد محفظتك لا يكفي! الرجاء شحن المحفظة أولاً.");
         }
     }
-</script>// أضف هذا الكود لكي يعمل زر الواتساب
+</script// أضف هذا الكود لكي يعمل زر الواتساب
 function askAccount(level) {
     const user = firebase.auth().currentUser;
     const userUID = user ? user.uid : "غير معروف";
@@ -157,6 +157,6 @@ function askAccount(level) {
     // فتح الواتساب في نافذة جديدة
     window.open(whatsappUrl, '_blank');
 }
-
+>
 </body>
 </html>

@@ -115,5 +115,14 @@ const firebaseConfig = {
         alert("تم إرسال طلبك لشراء حساب مستوى " + lvl);
     }
 </script>
-</body>
+</body><div id="shop-screen" class="hidden">
+    <div class="wallet-display">
+        <span style="display:block; font-size: 14px; color: #aaa;">كود المستخدم (UID) الخاص بك</span>
+        <span id="user-uid-display" style="color: var(--gold); font-family: monospace; font-size: 18px; border: 1px solid #333; padding: 5px; display: block; margin-bottom: 10px;">تحميل...</span>
+        
+        <span style="display:block; font-size: 14px; color: #aaa;">رصيد محفظتك</span>
+        <span id="balance" style="font-size: 28px; color: var(--gold); font-weight: bold;">0</span> <small>ج.س</small>
+    </div>
+    </div>
+
 </html>

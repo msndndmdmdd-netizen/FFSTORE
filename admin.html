@@ -3,113 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FF STORE ADMIN | غرفة العمليات</title>
+    <title>FF STORE ADMIN | لوحة التحكم</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        :root { --fire: #ff4b2b; --gold: #ffcc00; --dark: #05080a; }
-        body {
-            margin: 0; background-color: var(--dark); color: white; font-family: 'Cairo', sans-serif;
-            background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://wallpaperaccess.com/full/1192102.jpg');
-            background-size: cover; background-attachment: fixed;
-        }
-        .admin-wrapper { max-width: 900px; margin: 40px auto; padding: 20px; }
-        .card { background: rgba(18, 24, 31, 0.95); padding: 25px; border-radius: 15px; border-top: 5px solid var(--fire); margin-bottom: 20px; text-align: center; }
-        input { padding: 12px; margin: 10px; border-radius: 8px; border: 1px solid #333; background: #0b0e14; color: white; width: 250px; }
-        .btn-action { padding: 12px 30px; background: linear-gradient(45deg, #ff4b2b, #ff416c); border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; background: #12181f; margin-top: 20px; }
-        th { background: var(--fire); padding: 15px; }
-        td { padding: 15px; border-bottom: 1px solid #222; text-align: center; }
-        .uid-tag { color: var(--gold); background: #000; padding: 5px; border-radius: 4px; cursor: pointer; font-family: monospace; }
-        .status-badge { padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .type-diamond { background: #4ade80; color: black; }
-        .type-account { background: var(--gold); color: black; }
+        :root { --fire: #ff4b2b; --gold: #ffcc00; --dark: #0d1117; }
+        body { margin: 0; background-color: var(--dark); color: white; font-family: 'Cairo', sans-serif; }
+        .admin-header { background: linear-gradient(to left, #161b22, var(--fire)); padding: 20px; text-align: center; border-bottom: 3px solid var(--gold); }
+        .container { max-width: 900px; margin: 20px auto; padding: 15px; }
+        .card { background: #161b22; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #30363d; }
+        input { padding: 12px; margin: 5px; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: white; width: 220px; }
+        .btn-topup { background: var(--gold); color: black; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        th { background: #21262d; padding: 15px; border: 1px solid #30363d; color: var(--gold); }
+        td { padding: 15px; border: 1px solid #30363d; text-align: center; }
+        .uid-box { background: #0d1117; color: var(--gold); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-family: monospace; border: 1px solid #333; }
+        .type-tag { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; }
+        .tag-gems { background: #4ade80; color: black; }
+        .tag-acc { background: #60a5fa; color: white; }
+        .status-badge { color: #8b949e; font-size: 12px; }
     </style>
 </head>
 <body>
 
-<div class="admin-wrapper">
+<div class="admin-header">
+    <h2 style="margin:0;">🎖️ غرفة عمليات FF STORE</h2>
+    <div id="status" class="status-badge">جاري فحص الرادار...</div>
+</div>
+
+<div class="container">
     <div class="card">
-        <h1 style="color: var(--fire);">لوحة تحكم القائد 🎖️</h1>
-        <p>إدارة الطلبات وشحن محافظ اللاعبين</p>
+        <h3 style="margin-top:0; color: var(--gold);">💳 شحن رصيد المحفظة</h3>
+        <p style="font-size: 13px; color: #8b949e;">ضع الـ UID الخاص باللاعب والمبلغ لإضافة الرصيد فوراً.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+            <input type="text" id="target-uid" placeholder="أدخل UID اللاعب">
+            <input type="number" id="topup-amount" placeholder="المبلغ بالجنيه (ج.س)">
+            <button class="btn-topup" onclick="addMoney()">تأكيد الشحن ✅</button>
+        </div>
     </div>
 
     <div class="card">
-        <h3>💳 شحن رصيد للمحفظة</h3>
-        <input type="text" id="user-uid" placeholder="أدخل UID اللاعب">
-        <input type="number" id="money-amount" placeholder="المبلغ (ج.س)">
-        <button class="btn-action" onclick="topUp()">شحن الآن</button>
-    </div>
-
-    <div class="card" style="overflow-x: auto;">
-        <h3>📥 طلبات الشحن والحسابات</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>اللاعب (الإيميل)</th>
-                    <th>نوع الطلب</th>
-                    <th>الـ UID للنسخ</th>
-                    <th>الإجراء</th>
-                </tr>
-            </thead>
-            <tbody id="orders-table">
-                </tbody>
-        </table>
+        <h3 style="margin-top:0; color: var(--fire);">📥 طلبات الشحن والحسابات الحالية</h3>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>إيميل اللاعب</th>
+                        <th>النوع</th>
+                        <th>التفاصيل</th>
+                        <th>الـ UID (اضغط للنسخ)</th>
+                        <th>الإجراء</th>
+                    </tr>
+                </thead>
+                <tbody id="orders-list">
+                    </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <script>
-    // بيانات Firebase الخاصة بك
-        "// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCwb4HhEtQyzdlya4L85Wk1pgLlj8_n_jc",
-  authDomain: "ffstore-a008a.firebaseapp.com",
-  databaseURL: "https://ffstore-a008a-default-rtdb.firebaseio.com",
-  projectId: "ffstore-a008a",
-  storageBucket: "ffstore-a008a.firebasestorage.app",
-  messagingSenderId: "993784923560",
-  appId: "1:993784923560:web:b3933cef1bf4661188099d",
-  measurementId: "G-CKBD0FKFJB"
-};
+    // بيانات Firebase Config الخاصة بك
+    const firebaseConfig = {
+        apiKey: "AIzaSy...", 
+        authDomain: "ffstore-a008a.firebaseapp.com",
+        databaseURL: "https://ffstore-a008a-default-rtdb.firebaseio.com",
+        projectId: "ffstore-a008a",
+        storageBucket: "ffstore-a008a.appspot.com",
+        messagingSenderId: "993784923560",
+        appId: "1:993784923560:web:8a57e3f608101a93325608"
+    };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // وظيفة شحن المحفظة (الرصيد)
-    async function topUp() {
-        const uid = document.getElementById('user-uid').value;
-        const amount = parseInt(document.getElementById('money-amount').value);
-        if(!uid || !amount) return alert("الرجاء ملء كافة الخانات!");
+    // فحص حالة الاتصال
+    db.ref('.info/connected').on('value', (snap) => {
+        const status = document.getElementById('status');
+        if (snap.val() === true) {
+            status.innerText = "● متصل بالرادار - جميع الأنظمة تعمل";
+            status.style.color = "#4ade80";
+        } else {
+            status.innerText = "○ انقطع الاتصال - جاري المحاولة...";
+            status.style.color = "#f87171";
+        }
+    });
 
-        const walletRef = db.ref('wallets/' + uid);
-        const snapshot = await walletRef.once('value');
-        const currentBal = snapshot.val() || 0;
+    // وظيفة إضافة رصيد للمحفظة
+    async function addMoney() {
+        const uid = document.getElementById('target-uid').value.trim();
+        const amount = parseInt(document.getElementById('topup-amount').value);
         
-        await walletRef.set(currentBal + amount);
-        alert("تمت إضافة الرصيد بنجاح للاعب!");
-        document.getElementById('money-amount').value = '';
+        if(!uid || !amount) return alert("الرجاء إدخال UID والمبلغ!");
+
+        const ref = db.ref('wallets/' + uid);
+        const snap = await ref.once('value');
+        const currentBal = snap.val() || 0;
+        
+        await ref.set(currentBal + amount);
+        alert(`تم شحن ${amount} ج.س بنجاح للحساب!`);
+        document.getElementById('topup-amount').value = '';
     }
 
-    // عرض الطلبات المباشرة
+    // عرض الطلبات المباشرة من قاعدة البيانات
     db.ref('orders').on('value', (snapshot) => {
-        const table = document.getElementById('orders-table');
-        table.innerHTML = '';
+        const list = document.getElementById('orders-list');
+        list.innerHTML = '';
         
         snapshot.forEach((child) => {
             const data = child.val();
             const key = child.key;
             
-            let displayType = data.type === "جواهر" 
-                ? `<span class="status-badge type-diamond">💎 جواهر (${data.amount})</span>`
-                : `<span class="status-badge type-account">🎮 حساب (مستوى ${data.level})</span>`;
+            const typeLabel = data.type === "جواهر" 
+                ? `<span class="type-tag tag-gems">💎 جواهر</span>`
+                : `<span class="type-tag tag-acc">🎮 حساب</span>`;
 
-            table.innerHTML += `
+            const detail = data.type === "جواهر" ? data.amount + " جوهرة" : "مستوى " + data.level;
+
+            list.innerHTML += `
                 <tr>
                     <td>${data.email}</td>
-                    <td>${displayType}</td>
-                    <td><span class="uid-tag" onclick="copyUID('${data.uid}')">${data.uid}</span></td>
-                    <td><button onclick="deleteOrder('${key}')" style="background:#f87171; border:none; padding:5px; color:white; border-radius:4px; cursor:pointer;">تم</button></td>
+                    <td>${typeLabel}</td>
+                    <td>${detail}</td>
+                    <td><span class="uid-box" onclick="copyUID('${data.uid}')">${data.uid}</span></td>
+                    <td><button onclick="deleteOrder('${key}')" style="background:#f87171; border:none; padding:6px; color:white; border-radius:4px; cursor:pointer;">تم التنفيذ</button></td>
                 </tr>
             `;
         });
@@ -117,11 +135,11 @@ const firebaseConfig = {
 
     function copyUID(text) {
         navigator.clipboard.writeText(text);
-        alert("تم نسخ الـ UID للوحة الشحن!");
+        alert("تم نسخ الـ UID! اذهب الآن لبرنامج الشحن والصقه.");
     }
 
     function deleteOrder(key) {
-        if(confirm("هل تم تنفيذ الطلب؟ سيحذف من القائمة.")) {
+        if(confirm("هل متأكد من حذف الطلب؟ (قم بالحذف فقط بعد الشحن للاعب)")) {
             db.ref('orders/' + key).remove();
         }
     }

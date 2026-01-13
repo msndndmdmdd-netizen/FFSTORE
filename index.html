@@ -54,10 +54,18 @@
             <div class="item-row"><span>231 جوهرة</span> <b>7,600 ج.س</b> <button class="buy-btn" onclick="order('جواهر', 231, 7600)">شراء</button></div>
             <div class="item-row"><span>572 جوهرة</span> <b>18,500 ج.س</b> <button class="buy-btn" onclick="order('جواهر', 572, 18500)">شراء</button></div>
 
-            <h3 style="color: var(--fire); font-size: 16px; margin-top: 20px;">🎮 شراء حسابات جاهزة</h3>
-            <div class="item-row"><span>حساب مستوى 40-50</span> <b>12,000 ج.س</b> <button class="buy-btn" onclick="order('حساب', '40-50', 12000)">طلب</button></div>
-            <div class="item-row"><span>حساب مستوى 50-60</span> <b>25,000 ج.س</b> <button class="buy-btn" onclick="order('حساب', '50-60', 25000)">طلب</button></div>
-        </div>
+            <h3 style="color: var(--fire); font-size: 16px; margin-top: 20px;">🎮 استفسار عن حسابات جاهزة</h3>
+
+<div class="item-row">
+    <span>حسابات ليفل 40 - 50</span>
+    <button class="buy-btn" style="background: #23d366; border: none;" onclick="askAccount('40-50')">طلب استفسار</button>
+</div>
+
+<div class="item-row">
+    <span>حسابات ليفل 50 - 60</span>
+    <button class="buy-btn" style="background: #23d366; border: none;" onclick="askAccount('50-60')">طلب استفسار</button>
+</div>
+
 
         <a href="https://wa.me/249118801850" class="btn" style="background: #23d366; color: white; text-decoration: none; display: block;">تواصل مع المدير لشحن محفظتك</a>
         <button onclick="firebase.auth().signOut()" style="background:none; border:none; color:#555; cursor:pointer; margin-top:20px; font-size: 12px;">تسجيل الخروج</button>
@@ -131,6 +139,24 @@ const firebaseConfig = {
             alert("رصيد محفظتك لا يكفي! الرجاء شحن المحفظة أولاً.");
         }
     }
-</script>
+</script>// أضف هذا الكود لكي يعمل زر الواتساب
+function askAccount(level) {
+    const user = firebase.auth().currentUser;
+    const userUID = user ? user.uid : "غير معروف";
+    const userEmail = user ? user.email : "بدون إيميل";
+    
+    // الرسالة التي ستصلك على الواتساب
+    const message = `السلام عليكم مدير FF STORE، أريد الاستفسار عن توفر وسعر حساب ليفل ${level}.
+تفاصيل المستخدم:
+- الإيميل: ${userEmail}
+- الكود (UID): ${userUID}`;
+
+    // رابط الواتساب الخاص بك
+    const whatsappUrl = `https://wa.me/249118801850?text=${encodeURIComponent(message)}`;
+    
+    // فتح الواتساب في نافذة جديدة
+    window.open(whatsappUrl, '_blank');
+}
+
 </body>
 </html>

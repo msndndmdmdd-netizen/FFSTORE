@@ -128,7 +128,9 @@
                     <td>${typeLabel}</td>
                     <td>${detail}</td>
                     <td><span class="uid-box" onclick="copyUID('${data.uid}')">${data.uid}</span></td>
-                    <td><button onclick="deleteOrder('${key}')" style="background:#f87171; border:none; padding:6px; color:white; border-radius:4px; cursor:pointer;">تم التنفيذ</button></td>
+                    <td><button onclick="deleteOrder('${key}')" style="background:#f87171; border:none; padding:6px; color:white; border-radius:4px; cursor:pointer;">تم التنفيذ</button></td// تأكد أن زر الحذف داخل الكود البرمجي مكتوب بهذا الشكل:
+<td><button onclick="deleteOrder('${key}', '${data.uid}')" style="...">تم التنفيذ</button></td>
+>
                 </tr>
             `;
         });

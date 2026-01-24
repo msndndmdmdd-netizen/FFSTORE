@@ -7,193 +7,141 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
     <style>
         :root { --fire: #ff4b2b; --gold: #ffcc00; --bg: #0b0e14; --card: #161b22; }
         body {
             margin: 0; background-color: var(--bg); color: white; font-family: 'Cairo', sans-serif;
             background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://wallpaperaccess.com/full/1192102.jpg');
             background-size: cover; background-attachment: fixed; display: flex; justify-content: center; align-items: center; min-height: 100vh;
-        }<div id="notif-box" style="display:none; background: #23d366; color: white; padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; font-weight: bold; animation: pulse 2s infinite;">
-    ✅ مبروك! تم تنفيذ طلب الشحن الخاص بك بنجاح.
-</div>
-
+        }
         .main-container { width: 95%; max-width: 420px; background: rgba(22, 27, 34, 0.98); padding: 25px; border-radius: 20px; border-top: 4px solid var(--fire); box-shadow: 0 15px 35px rgba(0,0,0,0.8); text-align: center; }
         input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #30363d; background: #0d1117; color: white; box-sizing: border-box; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; font-size: 16px; }
-        .btn-fire { background: linear-gradient(45deg, #ff4b2b, #ff416c); color: white; box-shadow: 0 4px 15px rgba(255, 75, 43, 0.3); }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; font-size: 16px; text-decoration: none; display: block; }
+        .btn-fire { background: linear-gradient(45deg, #ff4b2b, #ff416c); color: white; }
         .btn-outline { background: transparent; border: 1px solid var(--fire); color: var(--fire); }
         .wallet-card { background: #0d1117; padding: 15px; border-radius: 12px; margin: 15px 0; border: 1px dashed var(--gold); }
         .hidden { display: none; }
         .item-row { display: flex; justify-content: space-between; align-items: center; background: #1c2128; padding: 12px; margin: 8px 0; border-radius: 8px; border-right: 4px solid var(--gold); }
         .buy-btn { background: var(--fire); color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer; }
+        #notif-box { background: #23d366; color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; display: none; }
     </style>
 </head>
 <body>
 
 <div class="main-container">
+    <div id="notif-box">✅ مبروك! تم تنفيذ طلبك بنجاح.</div>
+
     <h1 style="color: var(--fire); margin-bottom: 5px; letter-spacing: 2px;">FF STORE</h1>
     <p style="color: #8b949e; font-size: 13px; margin-bottom: 25px;">الشحن الرسمي والآمن في السودان 🇸🇩</p>
 
     <div id="auth-screen">
         <input type="email" id="email" placeholder="البريد الإلكتروني">
-        <input type="password" id="password" placeholder="كلمة المرور (6 أحرف فأكثر)">
+        <input type="password" id="password" placeholder="كلمة المرور">
         <button class="btn btn-fire" onclick="handleAuth('login')">تسجيل الدخول</button>
         <button class="btn btn-outline" onclick="handleAuth('register')">إنشاء حساب جديد</button>
-        <p style="font-size: 11px; color: #555; margin-top: 15px;">بإنشائك حساب فإنك توافق على شروط المتجر</p>
     </div>
 
     <div id="shop-screen" class="hidden">
         <div class="wallet-card">
-            <small style="color: #8b949e;">كود الشحن الخاص بك (UID):</small>
-            <div id="user-uid" style="color: var(--gold); font-family: monospace; font-size: 15px; margin: 5px 0; font-weight: bold;">جاري التحميل...</div>
+            <small>كود الشحن (UID):</small>
+            <div id="user-uid" style="color: var(--gold); font-weight: bold;">جاري التحميل...</div>
             <hr style="border: 0.1px solid #30363d;">
-            <small style="color: #8b949e;">رصيد محفظتك:</small>
-            <div style="font-size: 30px; color: white; font-weight: bold;"><span id="balance">0</span> <small style="font-size: 14px;">ج.س</small></div>
+            <small>الرصيد:</small>
+            <div style="font-size: 24px;"><span id="balance">0</span> ج.س</div>
         </div>
 
         <div style="text-align: right;">
-            <h3 style="color: var(--fire); font-size: 16px;">💎 عروض جواهر فري فاير</h3>
+            <h3 style="color: var(--fire); font-size: 16px;">💎 عروض الجواهر</h3>
             <div class="item-row"><span>110 جوهرة</span> <b>3,800 ج.س</b> <button class="buy-btn" onclick="order('جواهر', 110, 3800)">شراء</button></div>
             <div class="item-row"><span>231 جوهرة</span> <b>7,600 ج.س</b> <button class="buy-btn" onclick="order('جواهر', 231, 7600)">شراء</button></div>
-            <div class="item-row"><span>572 جوهرة</span> <b>18,500 ج.س</b> <button class="buy-btn" onclick="order('جواهر', 572, 18500)">شراء</button></div>
 
-            <h3 style="color: var(--fire); font-size: 16px; margin-top: 20px;">🎮 استفسار عن حسابات جاهزة</h3>
+            <h3 style="color: var(--fire); font-size: 16px; margin-top: 20px;">🎮 حسابات جاهزة</h3>
+            <div class="item-row"><span>حساب ليفل 40-50</span> <button class="buy-btn" style="background:#23d366;" onclick="askAccount('40-50')">استفسار</button></div>
+        </div>
 
-<div class="item-row">
-    <span>حسابات ليفل 40 - 50</span>
-    <button class="buy-btn" style="background: #23d366; border: none;" onclick="askAccount('40-50')">طلب استفسار</button>
-</div>
-
-<div class="item-row">
-    <span>حسابات ليفل 50 - 60</span>
-    <button class="buy-btn" style="background: #23d366; border: none;" onclick="askAccount('50-60')">طلب استفسار</button>
-</div>
-
-
-        <a href="https://wa.me/249996103758" class="btn" style="background: #23d366; color: white; text-decoration: none; display: block;">تواصل مع المدير لشحن محفظتك</a>
-        <button onclick="firebase.auth().signOut()" style="background:none; border:none; color:#555; cursor:pointer; margin-top:20px; font-size: 12px;">تسجيل الخروج</button>
+        <a href="https://wa.me/249996103758" class="btn" style="background: #23d366; color: white;">شحن المحفظة عبر الواتساب</a>
+        <button onclick="firebase.auth().signOut()" style="background:none; border:none; color:#555; cursor:pointer; margin-top:20px;">تسجيل الخروج</button>
     </div>
 </div>
 
-<script// مراقبة إذا كان هناك طلب تم تنفيذه لهذا المستخدم
-function watchOrders() {
-    const user = firebase.auth().currentUser;
-    if (user) {
-        db.ref('notifications/' + user.uid).on('value', (snapshot) => {
-            if (snapshot.val() && snapshot.val().status === "completed") {
-                document.getElementById('notif-box').style.display = 'block';
-                // إخفاء الرسالة بعد 10 ثواني
-                setTimeout(() => {
-                    db.ref('notifications/' + user.uid).remove();
-                    document.getElementById('notif-box').style.display = 'none';
-                }, 10000);
-            }
-        });
-    }
-}
-// تشغيل المراقبة بعد تسجيل الدخول
-firebase.auth().onAuthStateChanged((user) => { if(user) watchOrders(); });
->
-    // ضع بيانات Config الخاصة بك هنا بدقة
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCwb4HhEtQyzdlya4L85Wk1pgLlj8_n_jc",
-  authDomain: "ffstore-a008a.firebaseapp.com",
-  databaseURL: "https://ffstore-a008a-default-rtdb.firebaseio.com",
-  projectId: "ffstore-a008a",
-  storageBucket: "ffstore-a008a.firebasestorage.app",
-  messagingSenderId: "993784923560",
-  appId: "1:993784923560:web:b3933cef1bf4661188099d",
-  measurementId: "G-CKBD0FKFJB"
-};
+<script>
+    // الإعدادات
+    const firebaseConfig = {
+        apiKey: "AIzaSyCwb4HhEtQyzdlya4L85Wk1pgLlj8_n_jc",
+        authDomain: "ffstore-a008a.firebaseapp.com",
+        databaseURL: "https://ffstore-a008a-default-rtdb.firebaseio.com",
+        projectId: "ffstore-a008a",
+        storageBucket: "ffstore-a008a.firebasestorage.app",
+        messagingSenderId: "993784923560",
+        appId: "1:993784923560:web:b3933cef1bf4661188099d"
+    };
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
 
-    // مراقبة الدخول والخروج
+    // مراقبة حالة المستخدم
     auth.onAuthStateChanged(user => {
         if (user) {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('shop-screen').classList.remove('hidden');
-            document.getElementById('user-uid').innerText = user.uid; // إظهار الكود للمستخدم
+            document.getElementById('user-uid').innerText = user.uid;
+            
+            // تحديث الرصيد لحظياً
             db.ref('wallets/' + user.uid).on('value', s => { 
                 document.getElementById('balance').innerText = (s.val() || 0).toLocaleString(); 
             });
+
+            // مراقبة الإشعارات
+            watchOrders(user.uid);
         } else {
             document.getElementById('auth-screen').classList.remove('hidden');
             document.getElementById('shop-screen').classList.add('hidden');
         }
     });
 
-    // التعامل مع التسجيل والدخول
     async function handleAuth(type) {
         const email = document.getElementById('email').value.trim();
         const pass = document.getElementById('password').value;
-        if(!email || !pass) return alert("الرجاء ملء البيانات");
+        if(!email || pass.length < 6) return alert("البيانات غير مكتملة أو كلمة المرور ضعيفة");
         try {
             if(type === 'login') await auth.signInWithEmailAndPassword(email, pass);
             else await auth.createUserWithEmailAndPassword(email, pass);
         } catch (e) { alert("خطأ: " + e.message); }
     }
 
-    // إرسال الطلبات للمدير
     async function order(type, detail, price) {
         const user = auth.currentUser;
         const snap = await db.ref('wallets/' + user.uid).once('value');
         const bal = snap.val() || 0;
         
         if(bal >= price) {
-            if(confirm(`هل تريد تأكيد طلب ${detail} بمبلغ ${price} ج.س؟`)) {
+            if(confirm(`تأكيد شراء ${detail}؟`)) {
                 await db.ref('wallets/' + user.uid).set(bal - price);
                 await db.ref('orders').push({
-                    email: user.email,
-                    uid: user.uid,
-                    type: type,
-                    amount: type === 'جواهر' ? detail : null,
-                    level: type === 'حساب' ? detail : null,
-                    date: new Date().toLocaleString()
+                    email: user.email, uid: user.uid, type: type, amount: detail, date: new Date().toLocaleString()
                 });
-                alert("تم إرسال طلبك بنجاح! سيتم التنفيذ خلال دقائق.");
+                alert("تم إرسال طلبك!");
             }
-        } else {
-            alert("رصيد محفظتك لا يكفي! الرجاء شحن المحفظة أولاً.");
-        }
+        } else { alert("الرصيد غير كافٍ!"); }
     }
-</script// أضف هذا الكود لكي يعمل زر الواتساب
-function askAccount(level) {
-    const user = firebase.auth().currentUser;
-    const userUID = user ? user.uid : "غير معروف";
-    const userEmail = user ? user.email : "بدون إيميل";
-    
-    // الرسالة التي ستصلك على الواتساب
-    const message = `السلام عليكم مدير FF STORE، أريد الاستفسار عن توفر وسعر حساب ليفل ${level}.
-تفاصيل المستخدم:
-- الإيميل: ${userEmail}
-- الكود (UID): ${userUID}`;
 
-    // رابط الواتساب الخاص بك
-    const whatsappUrl = `https://wa.me/249996103758?text=${encodeURIComponent(message)}`;
-    
-    // فتح الواتساب في نافذة جديدة
-    window.open(whatsappUrl, '_blank');
-// هذا هو المحرك الذي يشغل زر الاستفسار ويربطه بالواتساب
-function askAccount(level) {
-    const user = firebase.auth().currentUser;
-    const userUID = user ? user.uid : "غير مسجل";
-    
-    // نص الرسالة التلقائية التي ستصلك
-    const message = `السلام عليكم مدير، أريد الاستفسار عن توفر وسعر حساب ليفل ${level}. الـ UID الخاص بي هو: ${userUID}`;
-    
-    // رابط الواتساب الخاص بك
-    const whatsappUrl = `https://wa.me/249996103758?text=${encodeURIComponent(message)}`;
-    
-    // أمر فتح الواتساب
-    window.open(whatsappUrl, '_blank');
-}
-}
->
+    function askAccount(level) {
+        const user = auth.currentUser;
+        const msg = `السلام عليكم، أود الاستفسار عن حساب ليفل ${level}. الـ UID الخاص بي: ${user ? user.uid : 'غير مسجل'}`;
+        window.open(`https://wa.me/249996103758?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function watchOrders(uid) {
+        db.ref('notifications/' + uid).on('value', (snapshot) => {
+            if (snapshot.val() && snapshot.val().status === "completed") {
+                const box = document.getElementById('notif-box');
+                box.style.display = 'block';
+                setTimeout(() => { box.style.display = 'none'; db.ref('notifications/' + uid).remove(); }, 10000);
+            }
+        });
+    }
+</script>
 </body>
 </html>
-

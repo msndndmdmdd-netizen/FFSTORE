@@ -52,38 +52,36 @@
                         <th>إيميل اللاعب</th>
                         <th>النوع</th>
                         <th>التفاصيل</th>
-                        <th>الـ UID (اضغط للنسخ)</th>
+                        <th>الـ UID (نسخ)</th>
                         <th>الإجراء</th>
                     </tr>
                 </thead>
-                <tbody id="orders-list">
-                    </tbody>
+                <tbody id="orders-list"></tbody>
             </table>
         </div>
     </div>
 </div>
 
 <script>
-    // بيانات Firebase Config الخاصة بك
+    // إعدادات Firebase
     const firebaseConfig = {
-  apiKey: "AIzaSyCwb4HhEtQyzdlya4L85Wk1pgLlj8_n_jc",
-  authDomain: "ffstore-a008a.firebaseapp.com",
-  databaseURL: "https://ffstore-a008a-default-rtdb.firebaseio.com",
-  projectId: "ffstore-a008a",
-  storageBucket: "ffstore-a008a.firebasestorage.app",
-  messagingSenderId: "993784923560",
-  appId: "1:993784923560:web:b3933cef1bf4661188099d",
-  measurementId: "G-CKBD0FKFJB"
-};
+        apiKey: "AIzaSyCwb4HhEtQyzdlya4L85Wk1pgLlj8_n_jc",
+        authDomain: "ffstore-a008a.firebaseapp.com",
+        databaseURL: "https://ffstore-a008a-default-rtdb.firebaseio.com",
+        projectId: "ffstore-a008a",
+        storageBucket: "ffstore-a008a.firebasestorage.app",
+        messagingSenderId: "993784923560",
+        appId: "1:993784923560:web:b3933cef1bf4661188099d"
+    };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // فحص حالة الاتصال
+    // فحص الاتصال
     db.ref('.info/connected').on('value', (snap) => {
         const status = document.getElementById('status');
         if (snap.val() === true) {
-            status.innerText = "● متصل بالرادار - جميع الأنظمة تعمل";
+            status.innerText = "● متصل بالرادار - الأنظمة تعمل";
             status.style.color = "#4ade80";
         } else {
             status.innerText = "○ انقطع الاتصال - جاري المحاولة...";
@@ -91,35 +89,30 @@
         }
     });
 
-    // وظيفة إضافة رصيد للمحفظة
+    // إضافة رصيد
     async function addMoney() {
         const uid = document.getElementById('target-uid').value.trim();
         const amount = parseInt(document.getElementById('topup-amount').value);
-        
-        if(!uid || !amount) return alert("الرجاء إدخال UID والمبلغ!");
+        if(!uid || !amount) return alert("أدخل البيانات!");
 
         const ref = db.ref('wallets/' + uid);
         const snap = await ref.once('value');
         const currentBal = snap.val() || 0;
-        
         await ref.set(currentBal + amount);
-        alert(`تم شحن ${amount} ج.س بنجاح للحساب!`);
+        alert(`تم شحن ${amount} ج.س بنجاح!`);
         document.getElementById('topup-amount').value = '';
     }
 
-    // عرض الطلبات المباشرة من قاعدة البيانات
+    // عرض الطلبات وتحديثها تلقائياً
     db.ref('orders').on('value', (snapshot) => {
         const list = document.getElementById('orders-list');
         list.innerHTML = '';
-        
         snapshot.forEach((child) => {
             const data = child.val();
             const key = child.key;
-            
             const typeLabel = data.type === "جواهر" 
                 ? `<span class="type-tag tag-gems">💎 جواهر</span>`
                 : `<span class="type-tag tag-acc">🎮 حساب</span>`;
-
             const detail = data.type === "جواهر" ? data.amount + " جوهرة" : "مستوى " + data.level;
 
             list.innerHTML += `
@@ -128,35 +121,31 @@
                     <td>${typeLabel}</td>
                     <td>${detail}</td>
                     <td><span class="uid-box" onclick="copyUID('${data.uid}')">${data.uid}</span></td>
-                    <td><button onclick="deleteOrder('${key}')" style="background:#f87171; border:none; padding:6px; color:white; border-radius:4px; cursor:pointer;">تم التنفيذ</button></td// تأكد أن زر الحذف داخل الكود البرمجي مكتوب بهذا الشكل:
-<td><button onclick="deleteOrder('${key}', '${data.uid}')" style="...">تم التنفيذ</button></td>
->
+                    <td><button onclick="completeOrder('${key}', '${data.uid}')" style="background:#4ade80; border:none; padding:8px; color:black; border-radius:4px; cursor:pointer; font-weight:bold;">تم التنفيذ</button></td>
                 </tr>
             `;
         });
     });
 
+    // تنفيذ الطلب وإرسال إشعار للمستخدم وحذفه من القائمة
+    function completeOrder(orderKey, userUID) {
+        if(confirm("هل تم الشحن؟ سيتم إخطار اللاعب وحذف الطلب.")) {
+            // إرسال إشعار النجاح للمستخدم
+            db.ref('notifications/' + userUID).set({
+                status: "completed",
+                timestamp: Date.now()
+            }).then(() => {
+                // حذف الطلب من قائمة المدير
+                db.ref('orders/' + orderKey).remove();
+                alert("تم إخطار اللاعب وحذف الطلب بنجاح! ✅");
+            });
+        }
+    }
+
     function copyUID(text) {
         navigator.clipboard.writeText(text);
-        alert("تم نسخ الـ UID! اذهب الآن لبرنامج الشحن والصقه.");
+        alert("تم نسخ الـ UID بنجاح!");
     }
-
-    function deleteOrder(key) // هذه هي الوظيفة المحدثة التي ترسل الإشعار
-function deleteOrder(key, userUID) {
-    if(confirm("هل متأكد من إتمام الشحن؟ سيصل إشعار فوري للعميل.")) {
-        
-        // أولاً: إرسال إشارة "نجاح" لقاعدة البيانات تحت UID العميل
-        db.ref('notifications/' + userUID).set({
-            status: "completed",
-            timestamp: Date.now()
-        }).then(() => {
-            // ثانياً: حذف الطلب الأصلي من القائمة بعد إرسال الإشعار
-            db.ref('orders/' + key).remove();
-            alert("تم تنفيذ الطلب وإخطار العميل بنجاح! ✅");
-        });
-    }
-}
-
 </script>
 </body>
 </html>
